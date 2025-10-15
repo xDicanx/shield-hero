@@ -5,10 +5,15 @@ using UnityEngine;
 using SH.Core;
 using SH.Actors;
 
+
+
+
 namespace SH.Core
 {
+    
     public class TurnLoop : MonoBehaviour
     {
+        public IActor CurrentActor { get; private set; }
         [Header("Orden de turnos (asigna en el Inspector)")]
         public List<MonoBehaviour> turnOrderRefs; // arrastra PlayerActor y EnemyActor (componentes)
         List<IActor> order;
@@ -55,6 +60,7 @@ namespace SH.Core
                 if (actor == null) { yield return null; continue; }
 
                 bool done = false;
+                CurrentActor = actor;
                 actor.TakeTurn(action =>
                 {
                     if (actor.IsAlive) ActionResolver.Resolve(action);
