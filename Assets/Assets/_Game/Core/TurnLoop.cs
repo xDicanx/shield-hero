@@ -16,7 +16,7 @@ namespace SH.Core
         bool running;
 
         // input buffer simple
-        System.Action<(bool attack, bool defend)> onPlayerKeys;
+        System.Action<(bool attack, bool defend, bool shield)> onPlayerKeys;
 
         void Start()
         {
@@ -65,7 +65,7 @@ namespace SH.Core
                 // Esperar a que el actor entregue su acción
                 while (!done) yield return null;
 
-                yield return new WaitForSeconds(0.25f); // pequeño ritmo
+                yield return new WaitForSeconds(0.4f); // pequeño ritmo
             }
         }
 
@@ -80,7 +80,7 @@ namespace SH.Core
         }
 
         // ===== Input mínimo para el jugador =====
-        public void WaitForPlayerInput(System.Action<(bool attack, bool defend)> callback)
+        public void WaitForPlayerInput(System.Action<(bool attack, bool defend, bool shield)> callback)
         {
             onPlayerKeys = callback;
         }
@@ -102,19 +102,25 @@ namespace SH.Core
 
         void Update()
         {
+                // Tap global para Parry (se queda igual)
+            if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.Space))
+                SH.Core.ParryWindow.RegisterTap();
+
             if (onPlayerKeys != null)
             {
                 bool atk = Input.GetKeyDown(KeyCode.A);
                 bool def = Input.GetKeyDown(KeyCode.D);
-                bool any = atk || def || Input.GetKeyDown(KeyCode.W);
+                bool sh  = Input.GetKeyDown(KeyCode.S);
+                bool any = atk || def || sh || Input.GetKeyDown(KeyCode.W);
 
                 if (any)
                 {
                     var cb = onPlayerKeys;
                     onPlayerKeys = null;
-                    cb((atk, def));
+                    cb((atk, def, sh));
                 }
             }
+
         }
     }
 }

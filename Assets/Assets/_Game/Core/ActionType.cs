@@ -3,7 +3,7 @@ using UnityEngine;
 namespace SH.Core
 {
     public enum Team { Player, Enemy }
-    public enum ActionType { Attack, Defend, Wait }
+    public enum ActionType { Attack, Defend, Wait, ShieldSkill } // + ShieldSkill
 
     public struct ActionData
     {
