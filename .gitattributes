@@ -1,0 +1,12 @@
+* text=auto
+
+# Fuerza LF en assets de Unity y código
+*.cs           text eol=lf
+*.meta         text eol=lf
+*.unity        text eol=lf
+*.prefab       text eol=lf
+*.asset        text eol=lf
+*.shader       text eol=lf
+*.cginc        text eol=lf
+*.compute      text eol=lf
+*.gradle       text eol=lf
