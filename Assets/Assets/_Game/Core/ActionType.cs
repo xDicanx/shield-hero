@@ -3,7 +3,37 @@ using SH.Core;
 namespace SH.Core
 {
     public enum Team { Player, Enemy }
-    public enum ActionType { Attack, Defend, Wait, ShieldSkill } // + ShieldSkill
+
+    /// <summary>
+    /// Tipos de acciones posibles en el sistema de combate.
+    /// Agrupados por funcionalidad para mayor claridad y mantenibilidad.
+    /// </summary>
+    public enum ActionType
+    {
+        // --- ACCIONES OFENSIVAS ---
+        /// <summary>
+        /// Ataque físico básico al objetivo.
+        /// </summary>
+        Attack,
+
+        // --- ACCIONES DEFENSIVAS ---
+        /// <summary>
+        /// Defensa básica: reduce el daño recibido durante el turno entrante.
+        /// </summary>
+        Defend,
+
+        // --- ACCIONES PASIVAS / ESPERA ---
+        /// <summary>
+        /// Espera: no realiza acción activa este turno.
+        /// </summary>
+        Wait,
+
+        // --- HABILIDADES ESPECIALES ---
+        /// <summary>
+        /// Golpe de escudo: consume cargas para aplicar un ataque/efecto especial.
+        /// </summary>
+        ShieldSkill
+    } // + ShieldSkill
 
     public struct ActionData
     {

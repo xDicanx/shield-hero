@@ -27,30 +27,63 @@ namespace SH.UI
 
         void Update()
         {
-            if (!loop) return;
+            var hudData = FetchHUDData();
+            var formatted = FormatHUDText(hudData);
+            UpdateHUDFields(formatted);
+        }
 
-            // Turno actual (si el TurnLoop expone CurrentActorName; si no, lo inferimos)
-            string turnOwner = GetCurrentTurnOwnerName();
-            turnText.text = $"Turn: {loop.CurrentActor?.Name ?? "-"}   (A=Attack  D=Defend  W=Wait  S=Shield)";
+        // Encapsula datos necesarios para HUD en un struct
+        private struct HUDData
+        {
+            public string turnOwner;
+            public System.Collections.Generic.List<IActor> players;
+            public System.Collections.Generic.List<IActor> enemies;
+            public int charges, maxCharges;
+        }
 
-            // Listas
-            var all = loop.AliveActors().ToList(); // vivos
-            var allWithDead = GetAllActors(loop);  // vivos + muertos para mostrar estado real
+        /// <summary>
+        /// Obtiene los datos base que usará el HUD.
+        /// </summary>
+        private HUDData FetchHUDData()
+        {
+            var data = new HUDData();
+            data.turnOwner = GetCurrentTurnOwnerName();
+            var allWithDead = GetAllActors(loop);
+            data.players = allWithDead.Where(a => a.Team == Team.Player).ToList();
+            data.enemies = allWithDead.Where(a => a.Team == Team.Enemy).ToList();
 
-            var players = allWithDead.Where(a => a.Team == Team.Player).ToList();
-            var enemies = allWithDead.Where(a => a.Team == Team.Enemy).ToList();
-
-            playersText.text = BuildSideBlock(players, "PLAYERS");
-            enemiesText.text = BuildSideBlock(enemies, "ENEMIES");
-
-            // Cargas (si hay)
-            int c = 0; int max = 5;
+            int c = 0, max = 5;
             if (hero)
             {
                 var sc = hero.GetComponent<ShieldChargeSystem>();
                 if (sc) { c = sc.Charges; max = sc.MaxCharges; }
             }
-            chargesText.text = $"Shield Charges: {c}/{max}";
+            data.charges = c;
+            data.maxCharges = max;
+            return data;
+        }
+
+        /// <summary>
+        /// Convierte los datos base en strings para el HUD.
+        /// </summary>
+        private (string turn, string players, string enemies, string charges) FormatHUDText(HUDData data)
+        {
+            string turnStr = $"Turn: {data.turnOwner}   (A=Attack  D=Defend  W=Wait  S=Shield)";
+            string playersStr = BuildSideBlock(data.players, "PLAYERS");
+            string enemiesStr = BuildSideBlock(data.enemies, "ENEMIES");
+            string chargesStr = $"Shield Charges: {data.charges}/{data.maxCharges}";
+            return (turnStr, playersStr, enemiesStr, chargesStr);
+        }
+
+        /// <summary>
+        /// Asigna los strings formateados a los campos visuales.
+        /// </summary>
+        private void UpdateHUDFields((string turn, string players, string enemies, string charges) formatted)
+        {
+            turnText.text = formatted.turn;
+            playersText.text = formatted.players;
+            enemiesText.text = formatted.enemies;
+            chargesText.text = formatted.charges;
         }
 
         string BuildSideBlock(System.Collections.Generic.IEnumerable<IActor> actors, string title)
@@ -67,23 +100,14 @@ namespace SH.UI
 
         string GetCurrentTurnOwnerName()
         {
-            // Si agregas una propiedad pública en TurnLoop (recomendado):
-            // public IActor CurrentActor { get; private set; }
             return loop.CurrentActor?.Name ?? "-";
-
-            // Si aún no la tienes, devolvemos "-" y luego puedes añadirla (ver abajo).
-            return "-";
         }
 
-        // Recupera todos (vivos y muertos) leyendo el orden original (privado en TurnLoop),
-        // o, si no es accesible, cae al truco de buscar componentes en escena (suficiente para el MVP).
         System.Collections.Generic.List<IActor> GetAllActors(TurnLoop tl)
         {
-            // Truco: recoge PlayerActor y EnemyActor en escena; mantiene nombres y HP actuales.
             var list = FindObjectsOfType<MonoBehaviour>()
                        .OfType<IActor>()
                        .ToList();
-            // Orden no garantizado; para MVP da igual.
             return list;
         }
     }
