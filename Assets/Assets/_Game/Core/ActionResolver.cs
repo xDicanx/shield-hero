@@ -1,5 +1,4 @@
 using UnityEngine;
-using SH.Core;
 
 namespace SH.Core
 {
@@ -24,55 +23,51 @@ namespace SH.Core
             }
         }
 
-        // Encapsula la lógica de ataque (incluye parry y log)
+        // Ataque básico (con parry)
         private static void ResolveAttack(ActionData action)
         {
             if (action.Target != null && action.Target.IsAlive)
             {
-                // ¿Parry activo justo ahora?
                 bool parry = false;
                 var targetMB = (action.Target as UnityEngine.MonoBehaviour);
                 if (targetMB && action.Target.Team == Team.Player)
-                {
-                    parry = SH.Core.ParryWindow.IsActiveNow();
-                }
+                    parry = ParryWindow.IsActiveNow();
 
                 int dmg = action.Amount;
-
                 if (parry)
                 {
-                    // Parry exitoso: reducimos (o anulamos) y añadimos 1 carga.
                     dmg = 0;
-                    var charge = targetMB.GetComponent<SH.Core.ShieldChargeSystem>();
-                    if (charge) charge.AddCharge(1);
-                    UnityEngine.Debug.Log($"[PARRY] {action.Target.Name} parrea el golpe (+1 carga).");
+                    Debug.Log($"[PARRY] {action.Target.Name} parrea el golpe (+1 carga).");
                 }
 
-                UnityEngine.Debug.Log(action.ToString());
-                action.Target.ReceiveDamage(dmg);
+                Debug.Log(action.ToString());
+                var steps = ActionTimelineBuilder.BuildAttackSteps(action, dmg, parry, targetMB);
+                ActionStepSequencer.PlayNow(steps);
             }
         }
 
-        // Lógica de defensa
+        // Defensa básica
         private static void ResolveDefend(ActionData action)
         {
-            action.Attacker?.ReceiveDefend();
+            var steps = ActionTimelineBuilder.BuildDefendSteps(action);
+            ActionStepSequencer.PlayNow(steps);
             Debug.Log($"{action.Attacker?.Name} DEFEND");
         }
 
-        // Lógica de espera
+        // Espera
         private static void ResolveWait(ActionData action)
         {
             Debug.Log($"{action.Attacker?.Name} WAIT");
         }
 
-        // Lógica de golpe de escudo
+        // Golpe de escudo (usa timeline)
         private static void ResolveShieldSkill(ActionData action)
         {
             if (action.Target != null && action.Target.IsAlive)
             {
-                UnityEngine.Debug.Log($"[SHIELD] {action.Attacker?.Name} golpea con escudo por {action.Amount}");
-                action.Target.ReceiveDamage(action.Amount);
+                Debug.Log($"[SHIELD] {action.Attacker?.Name} golpea con escudo por {action.Amount}");
+                var steps = ActionTimelineBuilder.BuildShieldSkillSteps(action);
+                ActionStepSequencer.PlayNow(steps);
             }
         }
     }

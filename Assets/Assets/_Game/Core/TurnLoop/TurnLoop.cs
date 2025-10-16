@@ -56,7 +56,7 @@ namespace SH.Core
         /// </summary>
         private System.Collections.IEnumerator MainLoop()
         {
-            running = true;
+             running = true;
             while (running)
             {
                 var state = victoryChecker.CheckVictoryOrDefeat(order);
@@ -78,10 +78,23 @@ namespace SH.Core
                     done = true;
                 }, WaitForPlayerInput);
 
-                // Esperar resolución de acción
+                // Esperar a que el actor elija acción
                 while (!done) yield return null;
 
-                yield return new WaitForSeconds(0.4f);
+                // NUEVO: si hay sequencer, esperar a que termine la timeline antes de pasar al siguiente actor.
+                // Fallback: si no hay sequencer reproduciendo, mantener pequeña pausa.
+                var seq = SH.Core.ActionStepSequencer.Instance; // ok si auto-instancia; IsPlaying será false si no se usó
+                if (seq != null)
+                {
+                    // Si no se inició ninguna timeline, IsPlaying ya será false y no bloquea.
+                    while (seq.IsPlaying)
+                        yield return null;
+                }
+                else
+                {
+                    // Fallback legacy (no debería ocurrir si el Instance auto-crea)
+                    yield return new WaitForSeconds(0.4f);
+                }
             }
         }
 
