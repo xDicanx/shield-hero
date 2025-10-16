@@ -1,4 +1,3 @@
-
 using UnityEngine;
 using System.Linq;
 using SH.Core;
@@ -17,46 +16,62 @@ namespace SH.Actors
             shield = GetComponent<ShieldChargeSystem>();
         }
 
-
         void OnValidate()
         {
             if (!loop) loop = FindObjectOfType<TurnLoop>();
         }
 
+        /// <summary>
+        /// Solicita input del jugador y procesa el resultado como acción.
+        /// </summary>
         public override void TakeTurn(System.Action<ActionData> onActionReady)
         {
             bool canShield = shield && shield.Charges > 0;
-            string extra = canShield ? "  S=Shield" : "";
-            Debug.Log($"-- TURNO de {Name} -- (A=Attack  D=Defend  W=Wait{extra})");
+            Debug.Log($"-- TURNO de {Name} -- (A=Attack  D=Defend  W=Wait{(canShield ? "  S=Shield" : "")})");
 
             loop.WaitForPlayerInput(keys =>
             {
                 var target = loop.AliveActors().FirstOrDefault(a => a.Team == Team.Enemy);
-
-                if (keys.attack)
-                {
-                    if (target == null) { onActionReady(new ActionData(ActionType.Wait, this, null)); return; }
-                    int dmg = this.Attack;
-                    if (shield) dmg += shield.ConsumeForBonus(); // consume si hubiera
-                    onActionReady(new ActionData(ActionType.Attack, this, target, dmg));
-                }
-                else if (keys.shield && canShield)
-                {
-                    if (target == null) { onActionReady(new ActionData(ActionType.Wait, this, null)); return; }
-                    // ShieldSkill: consume TODAS las cargas para un golpe de escudo
-                    int bonus = shield.ConsumeForBonus();         // consume (cargas * damagePerCharge)
-                    int dmg   = Mathf.Max(1, bonus);              // puro daño por cargas
-                    onActionReady(new ActionData(ActionType.ShieldSkill, this, target, dmg));
-                }
-                else if (keys.defend)
-                {
-                    onActionReady(new ActionData(ActionType.Defend, this, null));
-                }
-                else
-                {
-                    onActionReady(new ActionData(ActionType.Wait, this, null));
-                }
+                onActionReady(ProcessPlayerInput(keys, target, canShield));
             });
+        }
+
+        /// <summary>
+        /// Procesa el input recibido y construye el ActionData correspondiente.
+        /// </summary>
+        /// <param name="keys">Tupla (attack, defend, shield)</param>
+        /// <param name="target">Primer enemigo vivo</param>
+        /// <param name="canShield">Si el jugador tiene cargas de escudo</param>
+        /// <returns>ActionData a ejecutar</returns>
+        private ActionData ProcessPlayerInput((bool attack, bool defend, bool shield) keys, IActor target, bool canShield)
+        {
+            if (keys.attack)
+            {
+                if (target == null) 
+                    return new ActionData(ActionType.Wait, this, null);
+
+                int dmg = this.Attack;
+                if (shield)
+                    dmg += shield.ConsumeForBonus();
+                return new ActionData(ActionType.Attack, this, target, dmg);
+            }
+            else if (keys.shield && canShield)
+            {
+                if (target == null)
+                    return new ActionData(ActionType.Wait, this, null);
+
+                int bonus = shield.ConsumeForBonus();
+                int dmg = Mathf.Max(1, bonus);
+                return new ActionData(ActionType.ShieldSkill, this, target, dmg);
+            }
+            else if (keys.defend)
+            {
+                return new ActionData(ActionType.Defend, this, null);
+            }
+            else
+            {
+                return new ActionData(ActionType.Wait, this, null);
+            }
         }
     }
 }
