@@ -1,35 +1,41 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using SH.Core;
 using SH.Actors;
 
-
-
-
+/// <summary>
+/// Orquesta el flujo principal de turnos, delegando tareas a módulos especializados.
+/// </summary>
 namespace SH.Core
 {
-    
     public class TurnLoop : MonoBehaviour
     {
         public IActor CurrentActor { get; private set; }
         [Header("Orden de turnos (asigna en el Inspector)")]
-        public List<MonoBehaviour> turnOrderRefs; // arrastra PlayerActor y EnemyActor (componentes)
-        List<IActor> order;
-        int index;
-        bool running;
+        public List<MonoBehaviour> turnOrderRefs;
 
-        // input buffer simple
+        // Submódulos extraídos
+        private TurnSetup setup;
+        private TurnVictoryChecker victoryChecker;
+        private TurnRunner runner;
+
+        private List<IActor> order;
+        private int index;
+        private bool running;
+
+        // Input simple
         System.Action<(bool attack, bool defend, bool shield)> onPlayerKeys;
+
+        void Awake()
+        {
+            setup = new TurnSetup();
+            victoryChecker = new TurnVictoryChecker();
+            runner = new TurnRunner();
+        }
 
         void Start()
         {
-            // Filtra a IActor válidos
-            order = turnOrderRefs
-                    .Select(c => c as IActor)
-                    .Where(a => a != null)
-                    .ToList();
+            order = setup.SetupTurnOrder(turnOrderRefs);
 
             if (order.Count == 0)
             {
@@ -37,22 +43,26 @@ namespace SH.Core
                 enabled = false; return;
             }
 
-            StartCoroutine(RunLoop());
+            StartCoroutine(MainLoop());
         }
 
-        public IEnumerable<IActor> AliveActors() => order.Where(a => a.IsAlive);
+        /// <summary>
+        /// Devuelve actores vivos.
+        /// </summary>
+        public IEnumerable<IActor> AliveActors() => order?.FindAll(a => a.IsAlive);
 
-        IEnumerator RunLoop()
+        /// <summary>
+        /// Loop principal que coordina turnos.
+        /// </summary>
+        private System.Collections.IEnumerator MainLoop()
         {
             running = true;
             while (running)
             {
-                // todos muertos de un lado?
-                bool playersAlive = AliveActors().Any(a => a.Team == Team.Player);
-                bool enemiesAlive = AliveActors().Any(a => a.Team == Team.Enemy);
-                if (!playersAlive || !enemiesAlive)
+                var state = victoryChecker.CheckVictoryOrDefeat(order);
+                if (state != VictoryState.None)
                 {
-                    Debug.Log(playersAlive ? "VICTORY!" : "DEFEAT...");
+                    Debug.Log(state == VictoryState.PlayersWin ? "VICTORY!" : "DEFEAT...");
                     yield break;
                 }
 
@@ -61,22 +71,26 @@ namespace SH.Core
 
                 bool done = false;
                 CurrentActor = actor;
-                actor.TakeTurn(action =>
+                runner.RunActorTurn(actor, action =>
                 {
                     if (actor.IsAlive) ActionResolver.Resolve(action);
                     LogBoardState();
                     done = true;
-                });
+                }, WaitForPlayerInput);
 
-                // Esperar a que el actor entregue su acción
+                // Esperar resolución de acción
                 while (!done) yield return null;
 
-                yield return new WaitForSeconds(0.4f); // pequeño ritmo
+                yield return new WaitForSeconds(0.4f);
             }
         }
 
-        IActor NextAliveActor()
+        /// <summary>
+        /// Busca el siguiente actor vivo en orden.
+        /// </summary>
+        private IActor NextAliveActor()
         {
+            if (order == null || order.Count == 0) return null;
             for (int i = 0; i < order.Count; i++)
             {
                 index = (index + 1) % order.Count;
@@ -85,13 +99,18 @@ namespace SH.Core
             return null;
         }
 
-        // ===== Input mínimo para el jugador =====
+        /// <summary>
+        /// Espera input del jugador y lo pasa al callback.
+        /// </summary>
         public void WaitForPlayerInput(System.Action<(bool attack, bool defend, bool shield)> callback)
         {
             onPlayerKeys = callback;
         }
 
-        void LogBoardState()
+        /// <summary>
+        /// Loguea estado del tablero.
+        /// </summary>
+        private void LogBoardState()
         {
             var lines = new List<string>();
             lines.Add("=== BOARD ===");
@@ -105,28 +124,12 @@ namespace SH.Core
             Debug.Log(string.Join("\n", lines));
         }
 
-
         void Update()
         {
-                // Tap global para Parry (se queda igual)
+            //Hook global para ventana de parry (180ms)
             if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.Space))
                 SH.Core.ParryWindow.RegisterTap();
-
-            if (onPlayerKeys != null)
-            {
-                bool atk = Input.GetKeyDown(KeyCode.A);
-                bool def = Input.GetKeyDown(KeyCode.D);
-                bool sh  = Input.GetKeyDown(KeyCode.S);
-                bool any = atk || def || sh || Input.GetKeyDown(KeyCode.W);
-
-                if (any)
-                {
-                    var cb = onPlayerKeys;
-                    onPlayerKeys = null;
-                    cb((atk, def, sh));
-                }
-            }
-
+            runner.HandlePlayerInput(ref onPlayerKeys);
         }
     }
 }

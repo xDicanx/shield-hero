@@ -480,7 +480,7 @@ MonoBehaviour:
   team: 1
   maxHP: 20
   attack: 5
-  loop: {fileID: 1504951301}
+  loop: {fileID: 1504951303}
 --- !u!1 &282967320
 GameObject:
   m_ObjectHideFlags: 0
@@ -722,7 +722,7 @@ MonoBehaviour:
   team: 0
   maxHP: 20
   attack: 5
-  loop: {fileID: 1504951301}
+  loop: {fileID: 1504951303}
 --- !u!114 &313189824
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -978,7 +978,7 @@ MonoBehaviour:
   team: 1
   maxHP: 20
   attack: 5
-  loop: {fileID: 1504951301}
+  loop: {fileID: 1504951303}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1589,7 +1589,7 @@ MonoBehaviour:
   team: 1
   maxHP: 20
   attack: 5
-  loop: {fileID: 1504951301}
+  loop: {fileID: 1504951303}
 --- !u!1 &1319556285
 GameObject:
   m_ObjectHideFlags: 0
@@ -1680,6 +1680,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1504951302}
   - component: {fileID: 1504951301}
+  - component: {fileID: 1504951303}
   m_Layer: 0
   m_Name: TurnLoop
   m_TagString: Untagged
@@ -1705,6 +1706,8 @@ MonoBehaviour:
   - {fileID: 265328902}
   - {fileID: 377016559}
   - {fileID: 1251082987}
+  index: 0
+  running: 0
 --- !u!4 &1504951302
 Transform:
   m_ObjectHideFlags: 0
@@ -1720,6 +1723,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1053448751}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1504951303
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1504951300}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: abecfd0486ee2c24c87eced5ededc9eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  turnOrderRefs:
+  - {fileID: 313189823}
+  - {fileID: 1615302192}
+  - {fileID: 265328902}
+  - {fileID: 1251082987}
+  - {fileID: 377016559}
 --- !u!1 &1615302189
 GameObject:
   m_ObjectHideFlags: 0
@@ -1824,7 +1845,7 @@ MonoBehaviour:
   team: 0
   maxHP: 20
   attack: 5
-  loop: {fileID: 1504951301}
+  loop: {fileID: 1504951303}
 --- !u!1 &1626815756
 GameObject:
   m_ObjectHideFlags: 0
@@ -2081,7 +2102,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06dfed068ed8c8842b58065640cb0527, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  loop: {fileID: 1504951301}
+  loop: {fileID: 1504951303}
   turnText: {fileID: 282967322}
   playersText: {fileID: 1013617358}
   enemiesText: {fileID: 221046106}
