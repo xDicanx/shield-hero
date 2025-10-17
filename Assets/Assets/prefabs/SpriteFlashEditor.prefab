@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6234611891984941487}
   - component: {fileID: 8242926470926865156}
   m_Layer: 0
-  m_Name: SpriteFlash
+  m_Name: SpriteFlashEditor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
