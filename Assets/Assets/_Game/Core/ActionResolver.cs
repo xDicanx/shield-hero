@@ -38,6 +38,8 @@ namespace SH.Core
                 {
                     dmg = 0;
                     Debug.Log($"[PARRY] {action.Target.Name} parrea el golpe (+1 carga).");
+                    // NUEVO: notificar parry (atacante, defensor) para que la UI (ParryPulse, etc.) reaccione
+                    CombatEvents.OnParrySuccess?.Invoke(action.Attacker, action.Target);
                 }
 
                 Debug.Log(action.ToString());
