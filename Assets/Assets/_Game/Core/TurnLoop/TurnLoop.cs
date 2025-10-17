@@ -56,7 +56,7 @@ namespace SH.Core
         /// </summary>
         private System.Collections.IEnumerator MainLoop()
         {
-             running = true;
+           running = true;
             while (running)
             {
                 var state = victoryChecker.CheckVictoryOrDefeat(order);
@@ -96,6 +96,7 @@ namespace SH.Core
                     yield return new WaitForSeconds(0.4f);
                 }
             }
+            
         }
 
         /// <summary>

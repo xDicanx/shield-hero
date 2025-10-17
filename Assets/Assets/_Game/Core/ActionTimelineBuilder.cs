@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using SH.Actors; // SpriteFlash
 
 namespace SH.Core
 {
@@ -13,7 +14,11 @@ namespace SH.Core
 
             steps.Add(ActionStep.Wait("Banner: Attack", 0.10f));
             steps.Add(ActionStep.Wait("Windup", 0.25f));
-            steps.Add(ActionStep.DoWait("Impact", 0.10f, () => { /* hook SFX/flash */ }));
+            steps.Add(ActionStep.DoWait("Impact", 0.10f, () =>
+            {
+                if (targetMB && targetMB.gameObject)
+                    SpriteFlash.TryFlashOn(targetMB.gameObject, 0.12f); // amarillo cálido (default)
+            }));
 
             if (parry)
                 steps.AddRange(BuildParrySteps(action, targetMB));
@@ -43,7 +48,14 @@ namespace SH.Core
         public static List<ActionStep> BuildParrySteps(ActionData action, MonoBehaviour targetMB)
         {
             var steps = new List<ActionStep>();
-            steps.Add(ActionStep.Do("Flash", () => { /* SpriteFlash hook */ }));
+
+            // Flash cian para diferenciar de Impact
+            steps.Add(ActionStep.Do("Flash", () =>
+            {
+                if (targetMB && targetMB.gameObject)
+                    SpriteFlash.TryFlashOn(targetMB.gameObject, 0.10f, new Color(0.2f, 0.9f, 1f, 1f)); // cian
+            }));
+
             steps.Add(ActionStep.Do("SFX", () => { /* SfxBus.PlayParry() */ }));
             steps.Add(ActionStep.Do("Cargas+", () =>
             {
@@ -65,7 +77,12 @@ namespace SH.Core
 
             steps.Add(ActionStep.Wait("Banner: Shield", 0.10f));
             steps.Add(ActionStep.Wait("Windup", 0.20f));
-            steps.Add(ActionStep.DoWait("Impact", 0.10f, () => { /* hook SFX/shield bash */ }));
+            steps.Add(ActionStep.DoWait("Impact", 0.10f, () =>
+            {
+                var targetMB = action.Target as MonoBehaviour;
+                if (targetMB && targetMB.gameObject)
+                    SpriteFlash.TryFlashOn(targetMB.gameObject, 0.12f); // mismo color que Attack por ahora
+            }));
 
             steps.Add(ActionStep.Do("Damage", () =>
             {
