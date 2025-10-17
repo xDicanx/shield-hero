@@ -1,4 +1,5 @@
 using System;
+using SH.Core;
 
 namespace SH.Core
 {

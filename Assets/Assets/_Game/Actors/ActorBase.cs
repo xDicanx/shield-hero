@@ -53,6 +53,7 @@ namespace SH.Actors
                 transform.localScale *= 0.9f;
                 Debug.Log($"{Name} ha CAÍDO.");
             }
+            CombatEvents.OnDamageApplied?.Invoke(null, this, amount);
         }
 
         public virtual void ReceiveDefend()
