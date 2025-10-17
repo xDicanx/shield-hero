@@ -420,6 +420,60 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 131457669}
   m_CullTransparentMesh: 1
+--- !u!1 &200991797
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 200991799}
+  - component: {fileID: 200991798}
+  m_Layer: 0
+  m_Name: CameraNudgeHook
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &200991798
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 200991797}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09c7979c527470d4895b84c740149982, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nudge: {fileID: 330585548}
+  impactLabel: Impact
+  impactDir: {x: -1, y: 0.1}
+  impactMagnitude: 0.04
+  impactDuration: 0.14
+  parryLabelPrefix: Parry
+  parryFlashLabel: Flash
+  parryDir: {x: 1, y: 0}
+  parryMagnitude: 0.04
+  parryDuration: 0.12
+--- !u!4 &200991799
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 200991797}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &221046104
 GameObject:
   m_ObjectHideFlags: 0
@@ -929,6 +983,7 @@ GameObject:
   - component: {fileID: 330585545}
   - component: {fileID: 330585544}
   - component: {fileID: 330585547}
+  - component: {fileID: 330585548}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1054,6 +1109,21 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+--- !u!114 &330585548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c87d0c7f6bd7ab84eb3c06f100b6089a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 0}
+  maxMagnitude: 0.4
+  useUnscaledTime: 0
 --- !u!1 &377016556
 GameObject:
   m_ObjectHideFlags: 0
@@ -1598,7 +1668,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hitClip: {fileID: 8300000, guid: f4088029b3690cc489e69c63e32c7f94, type: 3}
   parryClip: {fileID: 8300000, guid: b42377ecbcd634e4680ebcace2ebdcef, type: 3}
-  defendClip: {fileID: 0}
+  defendClip: {fileID: 8300000, guid: c9c4dc8c6fa8e3243a2ea07c7aa2a44b, type: 3}
   volume: 0.9
   pitchJitter: 0.05
   poolSize: 6
@@ -2712,3 +2782,4 @@ SceneRoots:
   - {fileID: 1319556286}
   - {fileID: 2095739802}
   - {fileID: 560431481}
+  - {fileID: 200991799}
