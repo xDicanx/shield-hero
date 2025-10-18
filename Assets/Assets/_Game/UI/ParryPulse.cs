@@ -9,12 +9,12 @@ public class ParryPulse : MonoBehaviour
 {
     [Header("Referencias")]
     [SerializeField] private Canvas canvas;                 // Canvas contenedor
-    [SerializeField] private RectTransform ring;            // Image circular del halo
+    [SerializeField] private RectTransform ring;            // Image circular del halo (puede ser este mismo GO)
     [SerializeField] private Transform worldTarget;         // Transform del héroe
 
     [Header("Ajustes visuales")]
     [SerializeField] private Color ringColor = new Color(0.2f, 0.9f, 1f, 1f);
-    [SerializeField] private float duration = 0.25f;
+    [SerializeField, Min(0.01f)] private float duration = 0.25f;
     [SerializeField] private float startScale = 0.65f;
     [SerializeField] private float endScale = 1.25f;
     [SerializeField] private AnimationCurve ease = AnimationCurve.EaseInOut(0, 0, 1, 1);
@@ -41,6 +41,7 @@ public class ParryPulse : MonoBehaviour
             if (!ringImage) ringImage = ring.gameObject.AddComponent<Image>();
             ringImage.raycastTarget = false;
         }
+        // Importante: no desactivar el GameObject; solo ocultar con alpha.
         SetVisible(false);
     }
 
@@ -52,6 +53,7 @@ public class ParryPulse : MonoBehaviour
     void OnDisable()
     {
         CombatEvents.OnParrySuccess -= HandleParry;
+        if (playing != null) { StopCoroutine(playing); playing = null; }
     }
 
     void HandleParry(IActor source, IActor target)
@@ -64,6 +66,14 @@ public class ParryPulse : MonoBehaviour
     public void Pulse()
     {
         if (!ring) return;
+
+        // Guard extra: evita intentar correr coroutines si el componente/GO está inactivo.
+        if (!isActiveAndEnabled)
+        {
+            // Silencioso: salir sin error si alguien desactivó el GO externamente.
+            return;
+        }
+
         if (playing != null) StopCoroutine(playing);
         playing = StartCoroutine(PulseCo());
     }
@@ -87,7 +97,7 @@ public class ParryPulse : MonoBehaviour
         if (ringImage) ringImage.color = ringColor;
         SetVisible(true);
         ring.localScale = Vector3.one * startScale;
-        cg.alpha = 1f;
+        if (cg) cg.alpha = 1f;
 
         float t = 0f;
         while (t < 1f)
@@ -95,7 +105,7 @@ public class ParryPulse : MonoBehaviour
             t += Time.unscaledDeltaTime / Mathf.Max(0.0001f, duration);
             float e = ease != null ? ease.Evaluate(Mathf.Clamp01(t)) : Mathf.Clamp01(t);
             ring.localScale = Vector3.one * Mathf.Lerp(startScale, endScale, e);
-            cg.alpha = 1f - e;
+            if (cg) cg.alpha = 1f - e;
             yield return null;
         }
 
@@ -105,7 +115,10 @@ public class ParryPulse : MonoBehaviour
 
     void SetVisible(bool v)
     {
+        // No desactivar el GameObject (evita el error de StartCoroutine).
         if (cg) cg.alpha = v ? 1f : 0f;
-        if (ring) ring.gameObject.SetActive(v);
+        if (ringImage) ringImage.enabled = v;
+        // Mantener el GO activo para que las coroutines funcionen y la suscripción viva.
+        // Si se quiere “ocultar” al inicio, dejar alpha en 0 en lugar de SetActive(false).
     }
 }
