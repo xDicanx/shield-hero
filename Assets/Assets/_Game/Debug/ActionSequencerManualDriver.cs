@@ -54,26 +54,26 @@ namespace SH.Debugging
             }
 
             // Cancelar
-            if (Input.GetKeyDown(KeyCode.C))
+            if (UnityEngine.Input.GetKeyDown(KeyCode.C))
             {
                 Debug.Log("[Driver] CANCEL pressed");
                 ActionStepSequencer.Instance.StopCurrent();
             }
 
             // Escala de reproducción (soporta [ / ] y +/-)
-            if (Input.GetKeyDown(KeyCode.LeftBracket) || Input.GetKeyDown(KeyCode.Minus))   // [
+            if (UnityEngine.Input.GetKeyDown(KeyCode.LeftBracket) || UnityEngine.Input.GetKeyDown(KeyCode.Minus))   // [
                 ActionStepSequencer.Instance.playbackScale = Mathf.Max(0.1f, ActionStepSequencer.Instance.playbackScale - 0.1f);
-            if (Input.GetKeyDown(KeyCode.RightBracket) || Input.GetKeyDown(KeyCode.Equals)) // ]
+            if (UnityEngine.Input.GetKeyDown(KeyCode.RightBracket) || UnityEngine.Input.GetKeyDown(KeyCode.Equals)) // ]
                 ActionStepSequencer.Instance.playbackScale = Mathf.Min(2.0f, ActionStepSequencer.Instance.playbackScale + 0.1f);
 
             // Pausa global
-            if (Input.GetKeyDown(KeyCode.P))
+            if (UnityEngine.Input.GetKeyDown(KeyCode.P))
                 Time.timeScale = (Mathf.Approximately(Time.timeScale, 0f) ? 1f : 0f);
         }
 
         bool KeyDown(params KeyCode[] keys)
         {
-            foreach (var k in keys) if (Input.GetKeyDown(k)) return true;
+            foreach (var k in keys) if (UnityEngine.Input.GetKeyDown(k)) return true;
             return false;
         }
 

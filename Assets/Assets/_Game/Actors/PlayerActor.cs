@@ -10,6 +10,7 @@ namespace SH.Actors
         public TurnLoop loop;
 
         ShieldChargeSystem shield;
+
         protected override void Awake()
         {
             base.Awake();
@@ -26,6 +27,14 @@ namespace SH.Actors
         /// </summary>
         public override void TakeTurn(System.Action<ActionData> onActionReady)
         {
+            // UI-driven: si el Panel está en UI + MenuThenTarget, delega a TurnLoop.
+            if (loop != null && loop.UseMenuThenTarget)
+            {
+                loop.RequestPlayerActionViaUI(onActionReady);
+                return;
+            }
+
+            // Legacy (teclado A/D/W/S) — comportamiento original
             bool canShield = shield && shield.Charges > 0;
             Debug.Log($"-- TURNO de {Name} -- (A=Attack  D=Defend  W=Wait{(canShield ? "  S=Shield" : "")})");
 
@@ -37,17 +46,13 @@ namespace SH.Actors
         }
 
         /// <summary>
-        /// Procesa el input recibido y construye el ActionData correspondiente.
+        /// Construye el ActionData desde el input legacy.
         /// </summary>
-        /// <param name="keys">Tupla (attack, defend, shield)</param>
-        /// <param name="target">Primer enemigo vivo</param>
-        /// <param name="canShield">Si el jugador tiene cargas de escudo</param>
-        /// <returns>ActionData a ejecutar</returns>
         private ActionData ProcessPlayerInput((bool attack, bool defend, bool shield) keys, IActor target, bool canShield)
         {
             if (keys.attack)
             {
-                if (target == null) 
+                if (target == null)
                     return new ActionData(ActionType.Wait, this, null);
 
                 int dmg = this.Attack;

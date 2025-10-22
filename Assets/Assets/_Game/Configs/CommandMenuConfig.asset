@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e42ad86e305cbcb49ae58bbae7c39803, type: 3}
+  m_Name: CommandMenuConfig
+  m_EditorClassIdentifier: 
+  entries:
+  - enabled: 1
+    action: 0
+    label: Attack
+    icon: {fileID: 0}
+    hotkey: 97
+  - enabled: 1
+    action: 1
+    label: Defend
+    icon: {fileID: 0}
+    hotkey: 100
+  - enabled: 1
+    action: 2
+    label: Wait
+    icon: {fileID: 0}
+    hotkey: 119
+  - enabled: 1
+    action: 3
+    label: ShieldSkill
+    icon: {fileID: 0}
+    hotkey: 115

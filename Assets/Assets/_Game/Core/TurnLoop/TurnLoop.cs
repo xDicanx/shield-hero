@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using SH.Core;
-using SH.Actors;
+using SH.Input; // UI bridge
 
 /// <summary>
 /// Orquesta el flujo principal de turnos, delegando tareas a módulos especializados.
@@ -11,6 +11,7 @@ namespace SH.Core
     public class TurnLoop : MonoBehaviour
     {
         public IActor CurrentActor { get; private set; }
+
         [Header("Orden de turnos (asigna en el Inspector)")]
         public List<MonoBehaviour> turnOrderRefs;
 
@@ -23,8 +24,21 @@ namespace SH.Core
         private int index;
         private bool running;
 
-        // Input simple
+        // Input simple (legacy)
         System.Action<(bool attack, bool defend, bool shield)> onPlayerKeys;
+
+        [Header("Input Bridge (UI)")]
+        [SerializeField] CombatInputConfig inputConfig;                    // ScriptableObject con Mode/Flow
+        [SerializeField] CommandMenuInputSource uiInputSource;             // Flow = MenuOnly (no usado aquí)
+        [SerializeField] MenuThenTargetInputSource uiMenuThenTargetSource; // Flow = MenuThenTarget
+
+        /// <summary>
+        /// True si el Panel está en modo UI con flujo Menú→Target.
+        /// </summary>
+        public bool UseMenuThenTarget =>
+            inputConfig != null &&
+            inputConfig.Mode == InputMode.UI &&
+            inputConfig.Flow == UIFlow.MenuThenTarget;
 
         void Awake()
         {
@@ -37,7 +51,7 @@ namespace SH.Core
         {
             order = setup.SetupTurnOrder(turnOrderRefs);
 
-            if (order.Count == 0)
+            if (order == null || order.Count == 0)
             {
                 Debug.LogError("TurnLoop: sin actores asignados.");
                 enabled = false; return;
@@ -56,7 +70,7 @@ namespace SH.Core
         /// </summary>
         private System.Collections.IEnumerator MainLoop()
         {
-           running = true;
+            running = true;
             while (running)
             {
                 var state = victoryChecker.CheckVictoryOrDefeat(order);
@@ -71,6 +85,7 @@ namespace SH.Core
 
                 bool done = false;
                 CurrentActor = actor;
+
                 runner.RunActorTurn(actor, action =>
                 {
                     if (actor.IsAlive) ActionResolver.Resolve(action);
@@ -81,22 +96,18 @@ namespace SH.Core
                 // Esperar a que el actor elija acción
                 while (!done) yield return null;
 
-                // NUEVO: si hay sequencer, esperar a que termine la timeline antes de pasar al siguiente actor.
-                // Fallback: si no hay sequencer reproduciendo, mantener pequeña pausa.
-                var seq = SH.Core.ActionStepSequencer.Instance; // ok si auto-instancia; IsPlaying será false si no se usó
+                // Esperar timelines antes de pasar turno
+                var seq = SH.Core.ActionStepSequencer.Instance;
                 if (seq != null)
                 {
-                    // Si no se inició ninguna timeline, IsPlaying ya será false y no bloquea.
                     while (seq.IsPlaying)
                         yield return null;
                 }
                 else
                 {
-                    // Fallback legacy (no debería ocurrir si el Instance auto-crea)
                     yield return new WaitForSeconds(0.4f);
                 }
             }
-            
         }
 
         /// <summary>
@@ -114,11 +125,35 @@ namespace SH.Core
         }
 
         /// <summary>
-        /// Espera input del jugador y lo pasa al callback.
+        /// Espera input del jugador (legacy A/D/W/S).
+        /// Usado solo cuando el flujo UI no está activo.
         /// </summary>
         public void WaitForPlayerInput(System.Action<(bool attack, bool defend, bool shield)> callback)
         {
             onPlayerKeys = callback;
+        }
+
+        /// <summary>
+        /// Solicita acción del jugador vía flujo UI (Menú→Target).
+        /// Llamar solo si UseMenuThenTarget es true.
+        /// </summary>
+        public void RequestPlayerActionViaUI(System.Action<ActionData> callback)
+        {
+            if (!UseMenuThenTarget)
+            {
+                Debug.LogWarning("[TurnLoop] RequestPlayerActionViaUI llamado sin Flow=MenuThenTarget.");
+                return;
+            }
+            if (!uiMenuThenTargetSource)
+                uiMenuThenTargetSource = FindObjectOfType<MenuThenTargetInputSource>(includeInactive: true);
+
+            if (!uiMenuThenTargetSource)
+            {
+                Debug.LogWarning("[TurnLoop] No hay MenuThenTargetInputSource en escena.");
+                return;
+            }
+
+            uiMenuThenTargetSource.RequestAction(CurrentActor, callback);
         }
 
         /// <summary>
@@ -141,8 +176,10 @@ namespace SH.Core
         void Update()
         {
             //Hook global para ventana de parry (180ms)
-            if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.Space))
+            if (UnityEngine.Input.GetKeyDown(KeyCode.D) || UnityEngine.Input.GetKeyDown(KeyCode.Space))
                 SH.Core.ParryWindow.RegisterTap();
+
+            // Solo procesa teclas legacy si alguien está esperando
             runner.HandlePlayerInput(ref onPlayerKeys);
         }
     }
